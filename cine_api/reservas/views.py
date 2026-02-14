@@ -15,26 +15,17 @@ class ShowsViewSet(viewsets.ModelViewSet):
     ordering_fields = ["id", "movie_title"]
 
 class ReservationsViewSet(viewsets.ModelViewSet):
-    queryset = Reservations.objects.select_related("shows").all().order_by("-id")
+    queryset = Reservations.objects.select_related("show").all().order_by("-id")
     serializer_class = ReservationsSerializer
-    permission_classes = [IsAdminOrReadOnly]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["shows"]
-    search_fields = ["customer_name", "seats", "status"]
-    ordering_fields = ["id", "customer_name", "seats", "status", "created_at"]
+   
+    filterset_fields = ["show", "status"] 
+    search_fields = ["customer_name"]
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        anio_min = self.request.query_params.get("anio_min")
-        anio_max = self.request.query_params.get("anio_max")
-        if anio_min:
-            qs = qs.filter(anio__gte=int(anio_min))
-        if anio_max:
-            qs = qs.filter(anio__lte=int(anio_max))
-        return qs
+     
+        return super().get_queryset()
 
     def get_permissions(self):
-        # Público: SOLO listar vehículos
-        if self.action == "list":
+        if self.action == "list" or self.action == "create":
             return [AllowAny()]
-        return super().get_permissions()
+        return [IsAdminUser()]
